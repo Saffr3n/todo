@@ -6,8 +6,7 @@ module.exports = {
   entry: './src/index.js',
   plugins: [
     new HtmlWebpackPlugin({
-      title: 'ToDo',
-      meta: { viewport: 'width=device-width, initial-scale=1.0' }
+      template: './src/template.html'
     })
   ],
   output: {
