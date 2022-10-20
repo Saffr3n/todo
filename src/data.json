@@ -3,8 +3,85 @@
     {
       "title": "Default",
       "color": "#000000"
+    },
+    {
+      "title": "Custom",
+      "color": "#ff0000"
+    },
+    {
+      "title": "Test",
+      "color": "#00ff00"
+    },
+    {
+      "title": "Check",
+      "color": "#0000ff"
     }
   ],
 
-  "tasks": []
+  "tasks": [
+    {
+      "title": "Default Task 1",
+      "description": "",
+      "projectIndex": 0,
+      "priority": "low",
+      "dueDate": 6543216543211,
+      "completed": false
+    },
+    {
+      "title": "Custom Task 1",
+      "description": "",
+      "projectIndex": 1,
+      "priority": "medium",
+      "dueDate": 6543211234562,
+      "completed": false
+    },
+    {
+      "title": "Test Task 1",
+      "description": "",
+      "projectIndex": 2,
+      "priority": "high",
+      "dueDate": 6420135753103,
+      "completed": false
+    },
+    {
+      "title": "Check Task 1",
+      "description": "",
+      "projectIndex": 3,
+      "priority": "low",
+      "dueDate": 6817682665624,
+      "completed": false
+    },
+    {
+      "title": "Default Task 2",
+      "description": "",
+      "projectIndex": 0,
+      "priority": "medium",
+      "dueDate": 6244987315485,
+      "completed": false
+    },
+    {
+      "title": "Custom Task 2",
+      "description": "",
+      "projectIndex": 1,
+      "priority": "high",
+      "dueDate": 6482684653536,
+      "completed": false
+    },
+    {
+      "title": "Test Task 2",
+      "description": "",
+      "projectIndex": 2,
+      "priority": "high",
+      "dueDate": 6989245665427,
+      "completed": false
+    },
+    {
+      "title": "Check Task 2",
+      "description": "",
+      "projectIndex": 3,
+      "priority": "low",
+      "dueDate": 6228725423558,
+      "completed": false
+    }
+  ]
 }

@@ -7,35 +7,18 @@ window.addEventListener('load', () => {
   loadTasks();
   loadProjects();
 
+  const allTasksLink = document.querySelector('#all');
+  allTasksLink.addEventListener('click', e => sidebarLinkEH(e.target));
+
+  const todayTasksLink = document.querySelector('#today');
+  todayTasksLink.addEventListener('click', e => sidebarLinkEH(e.target));
+
   const newTaskBtn = document.querySelector('#content button');
-  newTaskBtn.addEventListener('click', () => showDialog(newTaskBtn));
+  newTaskBtn.addEventListener('click', e => data.projects.length > 0 ? showDialog(e.target) : alert('You need to have at least one project!'));
 
   const newProjBtn = document.querySelector('#sidebar button');
-  newProjBtn.addEventListener('click', () => showDialog(newProjBtn));
+  newProjBtn.addEventListener('click', e => showDialog(e.target));
 });
-
-function updateListeners () {
-  const links = document.querySelectorAll('#sidebar a');
-
-  links.forEach(link => link.addEventListener('click', e => {
-    links.forEach(a => a.classList.remove('active'));
-    e.target.classList.add('active');
-
-    if (e.target.id === 'all') {
-      document.querySelector('.heading').textContent = 'All Tasks';
-      loadTasks();
-    }
-    else if (e.target.id === 'today') {
-      document.querySelector('.heading').textContent = 'Today';
-      loadTasks(-1);
-    }
-    else {
-      const projectIndex = parseInt(e.target.parentNode.classList[1]);
-      document.querySelector('.heading').textContent = data.projects[projectIndex].title;
-      loadTasks(projectIndex);
-    }
-  }));
-}
 
 function loadTasks (projectIndex = null) {
   const tasks = document.querySelector('#tasks tbody');
@@ -44,13 +27,15 @@ function loadTasks (projectIndex = null) {
   data.tasks.sort((currentTask, nextTask) => currentTask.dueDate > nextTask.dueDate ? 1: -1);
 
   for (let i = 0; i < data.tasks.length; i++) {
+    let hide = false;
     if ((projectIndex === -1 && (new Date(data.tasks[i].dueDate)).toDateString() !== (new Date(Date.now())).toDateString()) ||
         (projectIndex !== -1 && projectIndex !== null && data.tasks[i].projectIndex !== projectIndex))
-      continue;
+      hide = true;
 
     const task = document.createElement('tr');
-    task.className = `task ${i}`;
+    task.classList.add('task');
     if (data.tasks[i].completed) task.classList.add('completed');
+    if (hide) task.style.display = 'none';
     task.style.boxShadow = `-0.2rem 0 ${data.projects[data.tasks[i].projectIndex].color}`;
 
     const cb = document.createElement('td');
@@ -91,6 +76,7 @@ function loadTasks (projectIndex = null) {
     const remove = document.createElement('span');
     remove.className = 'material-symbols-outlined remove';
     remove.textContent = 'delete';
+    remove.addEventListener('click', e => removeButtonEH(e.target));
     rm.appendChild(remove);
 
     task.appendChild(cb);
@@ -110,20 +96,21 @@ function loadProjects() {
 
   for (let i = 0; i < data.projects.length; i++) {
     const proj = document.createElement('div');
-    proj.className = `project ${i}`;
+    proj.classList.add('project');
     proj.style.boxShadow = `-0.2rem 0 ${data.projects[i].color}`;
 
     const link = document.createElement('a');
     link.textContent = data.projects[i].title;
+    link.addEventListener('click', e => sidebarLinkEH(e.target));
     proj.appendChild(link);
 
     const remove = document.createElement('span');
     remove.className = 'material-symbols-outlined remove';
     remove.textContent = 'delete';
+    remove.addEventListener('click', e => removeButtonEH(e.target));
     proj.appendChild(remove);
 
     list.appendChild(proj);
-    updateListeners();
   }
 }
 
@@ -135,16 +122,26 @@ function newProject (title, color) {
   data.projects.push({ title, color });
 }
 
-function moveTask (taskIndex, projectIndex) {
-  data.tasks[taskIndex].projectIndex = projectIndex;
-}
-
 function removeTask (taskIndex) {
   data.tasks.splice(taskIndex, 1);
+  document.querySelectorAll('.task')[taskIndex].remove();
 }
 
 function removeProject (projectIndex) {
   data.projects.splice(projectIndex, 1);
+  document.querySelectorAll('.project')[projectIndex].remove();
+
+  for (let i = 0; i < data.tasks.length; i++) {
+    if (data.tasks[i].projectIndex > projectIndex) {
+      data.tasks[i].projectIndex--;
+      continue;
+    }
+
+    if (data.tasks[i].projectIndex === projectIndex) {
+      removeTask(i);
+      i--;
+    }
+  }
 }
 
 function showDialog (button) {
@@ -266,7 +263,9 @@ function showDialog (button) {
     if (button.parentNode.id === 'content') {
       if (!date.value) return;
       newTask(title.value, project.selectedIndex, date.value, priority.value, description.value);
-      loadTasks();
+      const projectIndex = document.querySelector('#all').classList.contains('active') ? null :
+                           [...document.querySelectorAll('#projects a')].indexOf(document.querySelector('.active'));
+      loadTasks(projectIndex);
     }
     else {
       newProject(title.value, color.value);
@@ -278,4 +277,31 @@ function showDialog (button) {
 
   dialog.appendChild(form);
   document.body.appendChild(dialog);
+}
+
+function sidebarLinkEH (element) {
+  const links = document.querySelectorAll('#sidebar a');
+  links.forEach(link => link.classList.remove('active'));
+  element.classList.add('active');
+
+  if (element.id === 'all') {
+    document.querySelector('#content .heading').textContent = 'All Tasks';
+    loadTasks();
+  }
+  else if (element.id === 'today') {
+    document.querySelector('#content .heading').textContent = 'Today';
+    loadTasks(-1);
+  }
+  else {
+    const projectIndex = [...element.parentNode.parentNode.childNodes].indexOf(element.parentNode);
+    document.querySelector('#content .heading').textContent = data.projects[projectIndex].title;
+    loadTasks(projectIndex);
+  }
+}
+
+function removeButtonEH (element) {
+  if (element.parentNode.className)
+    removeProject([...element.parentNode.parentNode.childNodes].indexOf(element.parentNode));
+  else
+    removeTask([...element.parentNode.parentNode.parentNode.childNodes].indexOf(element.parentNode.parentNode));
 }
