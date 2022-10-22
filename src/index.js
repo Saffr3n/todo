@@ -1,9 +1,11 @@
 import './style.css';
 
-const data = require('./data.json');
-const storage = window.localStorage;
+let data = { projects: [{ title: 'Default', color: '#000000' }], tasks: [] };
 
 window.addEventListener('load', () => {
+  if (window.localStorage.getItem('ToDoData')) 
+    data = JSON.parse(window.localStorage.getItem('ToDoData'));
+
   loadTasks();
   loadProjects();
 
@@ -43,6 +45,18 @@ function loadTasks (projectIndex = null) {
     checkbox.classList.add('checkbox');
     checkbox.type = 'checkbox';
     checkbox.checked = data.tasks[i].completed;
+    checkbox.addEventListener('click', () => {
+      if (checkbox.checked) {
+        data.tasks[i].completed = true;
+        task.classList.add('completed');
+        saveLocally();
+      }
+      else {
+        data.tasks[i].completed = false;
+        task.classList.remove('completed');
+        saveLocally();
+      }
+    });
     cb.appendChild(checkbox);
 
     const title = document.createElement('th');
@@ -72,19 +86,25 @@ function loadTasks (projectIndex = null) {
     dueDate.classList.add('date');
     dueDate.textContent = (new Date(data.tasks[i].dueDate).toDateString());
 
-    const rm = document.createElement('td');
+    const buttons = document.createElement('td');
+    buttons.style = 'display: flex; gap: 8px';
+    const edit = document.createElement('span');
+    edit.className = 'material-symbols-outlined edit';
+    edit.textContent = 'edit_square';
+    edit.addEventListener('click', e => showDialog(e.target));
+    buttons.appendChild(edit);
     const remove = document.createElement('span');
     remove.className = 'material-symbols-outlined remove';
     remove.textContent = 'delete';
     remove.addEventListener('click', e => removeButtonEH(e.target));
-    rm.appendChild(remove);
+    buttons.appendChild(remove);
 
     task.appendChild(cb);
     task.appendChild(title);
     task.appendChild(description);
     task.appendChild(priority);
     task.appendChild(dueDate);
-    task.appendChild(rm);
+    task.appendChild(buttons);
     
     tasks.appendChild(task);
   }
@@ -104,6 +124,12 @@ function loadProjects() {
     link.addEventListener('click', e => sidebarLinkEH(e.target));
     proj.appendChild(link);
 
+    const edit = document.createElement('span');
+    edit.className = 'material-symbols-outlined edit';
+    edit.textContent = 'edit_square';
+    edit.addEventListener('click', e => showDialog(e.target));
+    proj.appendChild(edit);
+
     const remove = document.createElement('span');
     remove.className = 'material-symbols-outlined remove';
     remove.textContent = 'delete';
@@ -116,15 +142,28 @@ function loadProjects() {
 
 function newTask (title, projectIndex, dueDate, priority, description) {
   data.tasks.push({ title, projectIndex, dueDate, priority, description, completed: false });
+  saveLocally();
 }
 
 function newProject (title, color) {
   data.projects.push({ title, color });
+  saveLocally();
+}
+
+function editTask (taskIndex, title, projectIndex, dueDate, priority, description) {
+  data.tasks[taskIndex] = { title, projectIndex, dueDate, priority, description };
+  saveLocally();
+}
+
+function editProject (projectIndex, title, color) {
+  data.projects[projectIndex] = { title, color };
+  saveLocally();
 }
 
 function removeTask (taskIndex) {
   data.tasks.splice(taskIndex, 1);
   document.querySelectorAll('.task')[taskIndex].remove();
+  saveLocally();
 }
 
 function removeProject (projectIndex) {
@@ -142,9 +181,17 @@ function removeProject (projectIndex) {
       i--;
     }
   }
+
+  saveLocally();
 }
 
-function showDialog (button) {
+function saveLocally () {
+  window.localStorage.setItem('ToDoData', JSON.stringify(data));
+}
+
+function showDialog (element) {
+  let taskIndex, projectIndex;
+
   const dialog = document.createElement('div');
   dialog.id = 'dialog';
   dialog.addEventListener('click', e => {
@@ -174,9 +221,7 @@ function showDialog (button) {
   titleGroup.appendChild(title);
   inputs.appendChild(titleGroup);
 
-  if (button.parentNode.id === 'content') {
-    heading.textContent = 'New Task';
-
+  if (document.querySelector('#content').contains(element)) {
     const descriptionGroup = document.createElement('div');
     descriptionGroup.classList.add('form-group');
     const descriptionLabel = document.createElement('label');
@@ -231,15 +276,24 @@ function showDialog (button) {
     dateLabel.htmlFor = 'date';
     dateLabel.textContent = 'Date:';
     dateGroup.appendChild(dateLabel);
-    const date = document.createElement('input');
-    date.type = 'date';
-    date.id = 'date';
-    dateGroup.appendChild(date);
+    const dueDate = document.createElement('input');
+    dueDate.type = 'date';
+    dueDate.id = 'date';
+    dateGroup.appendChild(dueDate);
     inputs.appendChild(dateGroup);
+
+    if (element.nodeName === 'SPAN') {
+      taskIndex = [...element.parentNode.parentNode.parentNode.childNodes].indexOf(element.parentNode.parentNode);
+      heading.textContent = 'Edit Task';
+      title.value = data.tasks[taskIndex].title;
+      description.value = data.tasks[taskIndex].description;
+      project.selectedIndex = data.tasks[taskIndex].projectIndex;
+      priority.selectedIndex = data.tasks[taskIndex].priority === 'low' ? 0 : data.tasks[taskIndex].priority === 'medium' ? 1 : 2;
+      dueDate.value = data.tasks[taskIndex].dueDate;
+    }
+    else heading.textContent = 'New Task';
   }
   else {
-    heading.textContent = 'New Project';
-
     const colorGroup = document.createElement('div');
     colorGroup.classList.add('form-group');
     const colorLabel = document.createElement('label');
@@ -251,6 +305,14 @@ function showDialog (button) {
     color.id = 'color';
     colorGroup.appendChild(color);
     inputs.appendChild(colorGroup);
+
+    if (element.nodeName === 'SPAN') {
+      projectIndex = [...element.parentNode.parentNode.childNodes].indexOf(element.parentNode);
+      heading.textContent = 'Edit Project';
+      title.value = data.projects[projectIndex].title;
+      color.value = data.projects[projectIndex].color;
+    }
+    else heading.textContent = 'New Project';
   }
 
   const submit = document.createElement('button');
@@ -258,18 +320,39 @@ function showDialog (button) {
   form.appendChild(submit);
 
   submit.addEventListener('click', () => {
-    if (!title.value) return;
-    
-    if (button.parentNode.id === 'content') {
-      if (!date.value) return;
-      newTask(title.value, project.selectedIndex, date.value, priority.value, description.value);
-      const projectIndex = document.querySelector('#all').classList.contains('active') ? null :
-                           [...document.querySelectorAll('#projects a')].indexOf(document.querySelector('.active'));
-      loadTasks(projectIndex);
+    if (!title.value) {
+      alert('Title is missing!');
+      return;
     }
-    else {
+
+    const activeProjectIndex = document.querySelector('#all').classList.contains('active') ? null :
+                               [...document.querySelectorAll('#projects a')].indexOf(document.querySelector('.active'));
+    
+    if (element.parentNode.id === 'content') {
+      if (!date.value) {
+        alert('Date is missing!');
+        return;
+      }
+
+      newTask(title.value, project.selectedIndex, date.value, priority.value, description.value);
+      loadTasks(activeProjectIndex);
+    }
+    else if (element.parentNode.id === 'projects') {
       newProject(title.value, color.value);
       loadProjects();
+    }
+    else if (element.parentNode.classList.contains('project')) {
+      editProject(projectIndex, title.value, color.value);
+      loadProjects();
+    }
+    else {
+      if (!date.value) {
+        alert('Date is missing!');
+        return;
+      }
+
+      editTask(taskIndex, title.value, project.selectedIndex, date.value, priority.value, description.value);
+      loadTasks(activeProjectIndex);
     }
 
     dialog.remove();

@@ -87,14 +87,17 @@ a:hover {
   gap: 8px;
 }
 
+.edit,
 .remove {
   cursor: pointer;
 }
 
+#sidebar .edit:hover,
 #sidebar .remove:hover {
   color: #cbd5e1;
 }
 
+#content .edit:hover,
 #content .remove:hover {
   color: #334155;
 }
@@ -171,6 +174,10 @@ tbody tr:hover {
 .completed {
   background-color: #94a3b8;
   text-decoration: line-through;
+}
+
+.completed:hover {
+  background-color: #64748b;
 }
 
 #footer {
