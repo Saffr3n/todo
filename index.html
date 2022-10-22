@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,600,0,0">
+  <title>ToDo</title>
+<script defer src="main.js"></script></head>
+<body>
+  <div id="container">
+
+    <div id="header">
+      <div id="logo">ToDo</div>
+      <div id="profile">User Profile (WIP)</div>
+    </div>
+
+    <div id="sidebar">
+      <a id="all" class="active"><span class="material-symbols-outlined">list_alt</span>All Tasks</a>
+      <a id="today"><span class="material-symbols-outlined">today</span>Today</a>
+      <br>
+      <div id="projects">
+        Your Projects:
+        <div id="list"></div>
+        <button>New Project</button>
+      </div>
+    </div>
+
+    <div id="content">
+      <div class="heading">All Tasks</div>
+      <table id="tasks">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Priority</th>
+            <th>Due Date</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button>New Task</button>
+    </div>
+
+    <div id="footer">
+      Copyright © 2022
+      <a href="https://github.com/Saffr3n" target="_blank" rel="noopener noreferrer">Saffr3n</a>
+    </div>
+
+  </div>
+</body>
+</html>
